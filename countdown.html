@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Timer</title>
+    <link id="favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%2300aaff'/%3E%3Ctext x='50%25' y='50%25' fill='%23fff' font-size='14' text-anchor='middle' alignment-baseline='middle'%3E0%3C/text%3E%3C/svg%3E">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        #timer {
+            font-size: 2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Countdown Timer</h1>
+    <div id="timer">Loading countdown...</div>
+
+    <script>
+        let countdownInterval;
+
+        function startCountdown() {
+            clearInterval(countdownInterval);
+
+            // Hardcoded target date: May 19, 2025
+            const targetDate = new Date("2025-05-19T00:00:00");
+
+            countdownInterval = setInterval(() => {
+                const now = new Date();
+                const timeDifference = targetDate - now;
+
+                if (timeDifference <= 0) {
+                    clearInterval(countdownInterval);
+                    updateFavicon(0);
+                    document.getElementById('timer').innerText = "The countdown has ended!";
+                    return;
+                }
+
+                const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+                document.getElementById('timer').innerText =
+                    `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds remaining.`;
+
+                updateFavicon(days);
+            }, 1000);
+
+            scheduleMidnightRefresh();
+        }
+
+        function updateFavicon(days) {
+            const favicon = document.getElementById('favicon');
+            const svgIcon = `
+                <svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'>
+                    <rect width='32' height='32' fill='#00aaff'/>
+                    <text x='50%' y='50%' fill='#fff' font-size='14' text-anchor='middle' alignment-baseline='middle'>
+                        ${days > 0 ? days : 0}
+                    </text>
+                </svg>`;
+            const encodedSvg = 'data:image/svg+xml,' + encodeURIComponent(svgIcon);
+            favicon.href = encodedSvg;
+        }
+
+        function scheduleMidnightRefresh() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0); // Midnight
+            const timeUntilMidnight = tomorrow - now;
+
+            setTimeout(() => {
+                location.reload(); // Reload the page at midnight
+            }, timeUntilMidnight);
+        }
+
+        // Start the countdown immediately when the page loads
+        startCountdown();
+    </script>
+</body>
+</html>
