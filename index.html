@@ -26,10 +26,14 @@
     <div id="timer">Loading countdown...</div>
 
     <script>
-        const targetDate = new Date("2025-05-19T00:00:00");
+        function getIrishDate() {
+            return new Date().toLocaleString("en-IE", { timeZone: "Europe/Dublin" });
+        }
+
+        const targetDate = new Date("2025-05-19T00:00:00Z"); // Target date in UTC
 
         function startCountdown() {
-            const now = new Date();
+            const now = new Date(getIrishDate());
             const timeDifference = targetDate - now;
 
             if (timeDifference <= 0) {
