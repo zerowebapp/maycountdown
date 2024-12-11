@@ -15,19 +15,17 @@
             margin-bottom: 20px;
         }
         #timer {
-            font-size: 2em;
+            font-size: 8em; /* 800% larger */
             margin-top: 20px;
         }
         #current-time {
-            font-size: 1.5em;
-            color: #555;
-            margin-top: 10px;
+            display: none; /* Hides the current Irish time */
         }
     </style>
 </head>
 <body>
     <h1>Countdown Timer</h1>
-    <div id="current-time">Loading Irish time...</div>
+    <div id="current-time">Loading Irish time...</div> <!-- Hidden -->
     <div id="timer">Loading countdown...</div>
 
     <!-- Include Luxon library for timezone support -->
@@ -44,12 +42,8 @@
                 // Get the current time in Irish Time
                 const now = DateTime.now().setZone('Europe/Dublin');
 
-                // Display the current Irish time
-                const currentTimeDisplay = now.toFormat('HH:mm:ss');
-                document.getElementById('current-time').innerText = `Current Irish Time: ${currentTimeDisplay}`;
-
                 // Calculate the difference between now and the target date
-                const diff = targetDate.diff(now, ['days', 'hours', 'minutes', 'seconds']);
+                const diff = targetDate.diff(now, ['days']);
 
                 if (diff.toMillis() <= 0) {
                     document.title = "Countdown: Ended!";
@@ -59,13 +53,9 @@
                 }
 
                 const days = Math.floor(diff.days);
-                const hours = diff.hours.toFixed(0).padStart(2, '0');
-                const minutes = diff.minutes.toFixed(0).padStart(2, '0');
-                const seconds = diff.seconds.toFixed(0).padStart(2, '0');
 
                 document.title = `Countdown: ${days} Days`;
-                document.getElementById('timer').innerText =
-                    `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds remaining.`;
+                document.getElementById('timer').innerText = `${days} days remaining`;
 
                 updateIcon(days.toString());
 
