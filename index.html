@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Countdown Timer</title>
     <link id="favicon" rel="icon" href="">
     <style>
@@ -19,39 +18,85 @@
             font-size: 2em;
             margin-top: 20px;
         }
+        #current-time {
+            font-size: 1.5em;
+            color: #555;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>Countdown Timer</h1>
+    <div id="current-time">Loading Irish time...</div>
     <div id="timer">Loading countdown...</div>
 
-    <script>
-        function getIrishDate() {
-            return new Date().toLocaleString("en-IE", { timeZone: "Europe/Dublin" });
-        }
+    <!-- Include Luxon library for timezone support -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
 
-        const targetDate = new Date("2025-05-19T00:00:00Z"); // Target date in UTC
+    <script>
+        const { DateTime } = luxon;
 
         function startCountdown() {
-            const now = new Date(getIrishDate());
-            const timeDifference = targetDate - now;
+            // Set the target date in Irish Time (Europe/Dublin)
+            const targetDate = DateTime.fromISO("2025-05-19T00:00:00", { zone: 'Europe/Dublin' });
 
-            if (timeDifference <= 0) {
-                document.title = "Countdown: Ended!";
-                document.getElementById('timer').innerText = "The countdown has ended!";
-                return;
+            function updateCountdown() {
+                // Get the current time in Irish Time
+                const now = DateTime.now().setZone('Europe/Dublin');
+
+                // Display the current Irish time
+                const currentTimeDisplay = now.toFormat('HH:mm:ss');
+                document.getElementById('current-time').innerText = `Current Irish Time: ${currentTimeDisplay}`;
+
+                // Calculate the difference between now and the target date
+                const diff = targetDate.diff(now, ['days', 'hours', 'minutes', 'seconds']);
+
+                if (diff.toMillis() <= 0) {
+                    document.title = "Countdown: Ended!";
+                    document.getElementById('timer').innerText = "The countdown has ended!";
+                    updateIcon("0");
+                    return;
+                }
+
+                const days = Math.floor(diff.days);
+                const hours = diff.hours.toFixed(0).padStart(2, '0');
+                const minutes = diff.minutes.toFixed(0).padStart(2, '0');
+                const seconds = diff.seconds.toFixed(0).padStart(2, '0');
+
+                document.title = `Countdown: ${days} Days`;
+                document.getElementById('timer').innerText =
+                    `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds remaining.`;
+
+                updateIcon(days.toString());
+
+                setTimeout(updateCountdown, 1000);
             }
 
-            const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+            updateCountdown();
+        }
 
-            document.title = `Countdown: ${days} Days`;
-            document.getElementById('timer').innerText =
-                `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds remaining.`;
+        function updateIcon(days) {
+            const favicon = document.getElementById('favicon');
 
-            setTimeout(startCountdown, 1000);
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+
+            // Draw background
+            ctx.fillStyle = "#00aaff";
+            ctx.fillRect(0, 0, 32, 32);
+
+            // Draw days remaining
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(days, 16, 16);
+
+            // Update favicon
+            const iconURL = canvas.toDataURL("image/png");
+            favicon.href = iconURL;
         }
 
         startCountdown();
