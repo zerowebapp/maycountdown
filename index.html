@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Countdown Timer</title>
     <link id="favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%2300aaff'/%3E%3Ctext x='50%25' y='50%25' fill='%23fff' font-size='14' text-anchor='middle' alignment-baseline='middle'%3E0%3C/text%3E%3C/svg%3E">
+    <link id="apple-touch-icon" rel="apple-touch-icon" href="">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,6 +42,7 @@
                 if (timeDifference <= 0) {
                     clearInterval(countdownInterval);
                     updateFavicon(0);
+                    updateAppleIcon(0);
                     document.getElementById('timer').innerText = "The countdown has ended!";
                     return;
                 }
@@ -54,9 +56,8 @@
                     `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds remaining.`;
 
                 updateFavicon(days);
+                updateAppleIcon(days);
             }, 1000);
-
-            scheduleMidnightRefresh();
         }
 
         function updateFavicon(days) {
@@ -72,14 +73,17 @@
             favicon.href = encodedSvg;
         }
 
-        function scheduleMidnightRefresh() {
-            const now = new Date();
-            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0); // Midnight
-            const timeUntilMidnight = tomorrow - now;
-
-            setTimeout(() => {
-                location.reload(); // Reload the page at midnight
-            }, timeUntilMidnight);
+        function updateAppleIcon(days) {
+            const appleTouchIcon = document.getElementById('apple-touch-icon');
+            const svgIcon = `
+                <svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'>
+                    <rect width='180' height='180' fill='#00aaff'/>
+                    <text x='50%' y='50%' fill='#fff' font-size='48' text-anchor='middle' alignment-baseline='middle'>
+                        ${days > 0 ? days : 0}
+                    </text>
+                </svg>`;
+            const encodedSvg = 'data:image/svg+xml,' + encodeURIComponent(svgIcon);
+            appleTouchIcon.href = encodedSvg;
         }
 
         // Start the countdown immediately when the page loads
