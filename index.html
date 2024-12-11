@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Countdown Timer</title>
     <link id="favicon" rel="icon" href="">
-    <link id="apple-touch-icon" rel="apple-touch-icon" href="">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -34,8 +33,8 @@
             const timeDifference = targetDate - now;
 
             if (timeDifference <= 0) {
+                document.title = "Countdown: Ended!";
                 document.getElementById('timer').innerText = "The countdown has ended!";
-                updateIcon("0");
                 return;
             }
 
@@ -44,38 +43,11 @@
             const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
 
+            document.title = `Countdown: ${days} Days`;
             document.getElementById('timer').innerText =
                 `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds remaining.`;
 
-            updateIcon(days.toString());
-
-            setTimeout(startCountdown, 1000); // Update every second
-        }
-
-        function updateIcon(days) {
-            const appleIcon = document.getElementById('apple-touch-icon');
-            const favicon = document.getElementById('favicon');
-
-            const canvas = document.createElement('canvas');
-            canvas.width = 180;
-            canvas.height = 180;
-            const ctx = canvas.getContext('2d');
-
-            // Draw background
-            ctx.fillStyle = "#00aaff";
-            ctx.fillRect(0, 0, 180, 180);
-
-            // Draw days remaining
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 90px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(days, 90, 90);
-
-            // Update icons
-            const iconURL = canvas.toDataURL("image/png");
-            appleIcon.href = iconURL;
-            favicon.href = iconURL;
+            setTimeout(startCountdown, 1000);
         }
 
         startCountdown();
