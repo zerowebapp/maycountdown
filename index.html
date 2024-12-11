@@ -15,8 +15,14 @@
             margin-bottom: 20px;
         }
         #timer {
-            font-size: 8em; /* 800% larger */
             margin-top: 20px;
+        }
+        #days {
+            font-size: 8em; /* 800% larger */
+        }
+        #label {
+            font-size: 2em; /* Smaller label */
+            margin-top: -20px;
         }
         #current-time {
             display: none; /* Hides the current Irish time */
@@ -26,7 +32,10 @@
 <body>
     <h1>Countdown Timer</h1>
     <div id="current-time">Loading Irish time...</div> <!-- Hidden -->
-    <div id="timer">Loading countdown...</div>
+    <div id="timer">
+        <div id="days">Loading...</div>
+        <div id="label">Days Remaining</div>
+    </div>
 
     <!-- Include Luxon library for timezone support -->
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
@@ -47,7 +56,8 @@
 
                 if (diff.toMillis() <= 0) {
                     document.title = "Countdown: Ended!";
-                    document.getElementById('timer').innerText = "The countdown has ended!";
+                    document.getElementById('days').innerText = "0";
+                    document.getElementById('label').innerText = "Countdown Ended";
                     updateIcon("0");
                     return;
                 }
@@ -55,7 +65,8 @@
                 const days = Math.floor(diff.days);
 
                 document.title = `Countdown: ${days} Days`;
-                document.getElementById('timer').innerText = `${days} days remaining`;
+                document.getElementById('days').innerText = days;
+                document.getElementById('label').innerText = "Days Remaining";
 
                 updateIcon(days.toString());
 
