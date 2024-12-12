@@ -76,29 +76,29 @@
             updateCountdown();
         }
 
-        function updateIcon(days) {
-            const favicon = document.getElementById('favicon');
+       function updateIcon(days) {
+    const favicon = document.getElementById('favicon');
 
-            const canvas = document.createElement('canvas');
-            canvas.width = 32;
-            canvas.height = 32;
-            const ctx = canvas.getContext('2d');
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
 
-            // Draw background
-            ctx.fillStyle = "#00aaff";
-            ctx.fillRect(0, 0, 32, 32);
+    // Draw background
+    ctx.fillStyle = "#00aaff";
+    ctx.fillRect(0, 0, 32, 32);
 
-            // Draw days remaining
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 16px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(days, 16, 16);
+    // Draw days remaining
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 16px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(days, 16, 16);
 
-            // Update favicon
-            const iconURL = canvas.toDataURL("image/png");
-            favicon.href = iconURL;
-        }
+    // Update favicon with cache-busting
+    const iconURL = canvas.toDataURL("image/png");
+    favicon.href = `${iconURL}?v=${new Date().getTime()}`; // Append timestamp to force refresh
+}
 
         startCountdown();
     </script>
