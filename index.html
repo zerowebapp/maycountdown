@@ -37,10 +37,10 @@
             margin-top: -20px;
         }
 
-        #adjusted-days {
-            font-size: 1.5em;
+        #working-days {
+            font-size: 6em; /* Increased by 400% */
             color: var(--secondary-color);
-            margin-top: 20px;
+            margin-top: 40px;
         }
 
         #current-time {
@@ -54,7 +54,7 @@
     <div id="timer">
         <div id="days">Loading...</div>
         <div id="label">Days Remaining</div>
-        <div id="adjusted-days">Adjusted days remaining: Loading...</div>
+        <div id="working-days">Working Days: Loading...</div>
     </div>
 
     <!-- Include Luxon library for timezone support -->
@@ -137,7 +137,7 @@
                 // Get the current time in Irish Time
                 const now = DateTime.now().setZone('Europe/Dublin');
 
-                // Calculate the total days remaining
+                // Calculate the total Days remaining
                 const diff = targetDate.diff(now, ['days']);
                 const totalDays = Math.floor(diff.days);
 
@@ -145,17 +145,17 @@
                     document.title = "Countdown: Ended!";
                     document.getElementById('days').innerText = "0";
                     document.getElementById('label').innerText = "Countdown Ended";
-                    document.getElementById('adjusted-days').innerText = "Adjusted days remaining: 0";
+                    document.getElementById('working-days').innerText = "Working Days: 0";
                     return;
                 }
 
-                // Update the total days countdown
+                // Update the total Days countdown
                 document.getElementById('days').innerText = totalDays;
                 document.getElementById('label').innerText = "Days Remaining";
 
-                // Calculate adjusted working days remaining
-                const adjustedDays = calculateWorkingDays(targetDate);
-                document.getElementById('adjusted-days').innerText = `Adjusted days remaining: ${adjustedDays}`;
+                // Calculate adjusted Working Days remaining
+                const workingDays = calculateWorkingDays(targetDate);
+                document.getElementById('working-days').innerText = `Working Days: ${workingDays}`;
 
                 setTimeout(updateCountdown, 1000);
             }
