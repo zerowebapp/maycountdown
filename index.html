@@ -5,25 +5,38 @@
     <title>Countdown Timer</title>
     <link id="favicon" rel="icon" href="">
     <style>
+        :root {
+            --background-color: #121212;
+            --text-color: white;
+            --secondary-color: #bbbbbb;
+        }
+
         body {
+            background-color: var(--background-color);
+            color: var(--text-color);
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
         }
+
         h1 {
-            font-size: 2.5em;
+            font-size: 6em; /* Increased 400% */
             margin-bottom: 20px;
         }
+
         #timer {
             margin-top: 20px;
         }
+
         #days {
-            font-size: 8em; /* 800% larger */
+            font-size: 16em; /* Increased 400% */
         }
+
         #label {
-            font-size: 2em; /* Smaller label */
+            font-size: 4em; /* Increased 400% */
             margin-top: -20px;
         }
+
         #current-time {
             display: none; /* Hides the current Irish time */
         }
@@ -58,7 +71,6 @@
                     document.title = "Countdown: Ended!";
                     document.getElementById('days').innerText = "0";
                     document.getElementById('label').innerText = "Countdown Ended";
-                    updateIcon("0");
                     return;
                 }
 
@@ -68,37 +80,11 @@
                 document.getElementById('days').innerText = days;
                 document.getElementById('label').innerText = "Days Remaining";
 
-                updateIcon(days.toString());
-
                 setTimeout(updateCountdown, 1000);
             }
 
             updateCountdown();
         }
-
-       function updateIcon(days) {
-    const favicon = document.getElementById('favicon');
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 32;
-    canvas.height = 32;
-    const ctx = canvas.getContext('2d');
-
-    // Draw background
-    ctx.fillStyle = "#00aaff";
-    ctx.fillRect(0, 0, 32, 32);
-
-    // Draw days remaining
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 16px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(days, 16, 16);
-
-    // Update favicon with cache-busting
-    const iconURL = canvas.toDataURL("image/png");
-    favicon.href = `${iconURL}?v=${new Date().getTime()}`; // Append timestamp to force refresh
-}
 
         startCountdown();
     </script>
