@@ -20,7 +20,7 @@
         }
 
         h1 {
-            font-size: 6em; /* Increased 400% */
+            font-size: 6em;
             margin-bottom: 20px;
         }
 
@@ -29,16 +29,22 @@
         }
 
         #days {
-            font-size: 16em; /* Increased 400% */
+            font-size: 16em;
         }
 
         #label {
-            font-size: 4em; /* Increased 400% */
+            font-size: 4em;
             margin-top: -20px;
         }
 
+        #adjusted-days {
+            font-size: 1.5em;
+            color: var(--secondary-color);
+            margin-top: 20px;
+        }
+
         #current-time {
-            display: none; /* Hides the current Irish time */
+            display: none;
         }
     </style>
 </head>
@@ -48,6 +54,7 @@
     <div id="timer">
         <div id="days">Loading...</div>
         <div id="label">Days Remaining</div>
+        <div id="adjusted-days">Adjusted days remaining: Loading...</div>
     </div>
 
     <!-- Include Luxon library for timezone support -->
@@ -55,6 +62,72 @@
 
     <script>
         const { DateTime } = luxon;
+
+        // List of Irish bank holidays for 2024 and 2025
+        const bankHolidays = [
+            // 2024 Bank Holidays
+            "2024-01-01", // New Year's Day
+            "2024-03-17", // St. Patrick's Day
+            "2024-04-01", // Easter Monday
+            "2024-05-06", // May Bank Holiday
+            "2024-06-03", // June Bank Holiday
+            "2024-08-05", // August Bank Holiday
+            "2024-10-28", // October Bank Holiday
+            "2024-12-25", // Christmas Day
+            "2024-12-26", // St. Stephen's Day
+
+            // 2025 Bank Holidays
+            "2025-01-01", // New Year's Day
+            "2025-03-17", // St. Patrick's Day
+            "2025-04-21", // Easter Monday
+            "2025-05-05", // May Bank Holiday
+            "2025-06-02", // June Bank Holiday
+            "2025-08-04", // August Bank Holiday
+            "2025-10-27", // October Bank Holiday
+            "2025-12-25", // Christmas Day
+            "2025-12-26", // St. Stephen's Day
+        ];
+
+        // Christmas holidays and mid-term break
+        const academicHolidays = [
+            // Christmas holidays (20th December 2024 to 6th January 2025)
+            ...generateHolidayRange("2024-12-20", "2025-01-06"),
+            // Mid-term break (17th February to 21st February 2025)
+            ...generateHolidayRange("2025-02-17", "2025-02-21"),
+        ];
+
+        const holidays = [...bankHolidays, ...academicHolidays].map(date => DateTime.fromISO(date));
+
+        // Generate an array of dates for a given range
+        function generateHolidayRange(startDate, endDate) {
+            const start = DateTime.fromISO(startDate);
+            const end = DateTime.fromISO(endDate);
+            const dates = [];
+            let currentDate = start;
+
+            while (currentDate <= end) {
+                dates.push(currentDate.toISODate());
+                currentDate = currentDate.plus({ days: 1 });
+            }
+            return dates;
+        }
+
+        function calculateWorkingDays(targetDate) {
+            const now = DateTime.now().setZone("Europe/Dublin");
+            let workingDays = 0;
+            let currentDate = now;
+
+            while (currentDate < targetDate) {
+                // Exclude weekends
+                if (currentDate.weekday < 6) {
+                    // Exclude holidays
+                    const isHoliday = holidays.some(holiday => holiday.hasSame(currentDate, 'day'));
+                    if (!isHoliday) workingDays++;
+                }
+                currentDate = currentDate.plus({ days: 1 });
+            }
+            return workingDays;
+        }
 
         function startCountdown() {
             // Set the target date in Irish Time (Europe/Dublin)
@@ -64,21 +137,25 @@
                 // Get the current time in Irish Time
                 const now = DateTime.now().setZone('Europe/Dublin');
 
-                // Calculate the difference between now and the target date
+                // Calculate the total days remaining
                 const diff = targetDate.diff(now, ['days']);
+                const totalDays = Math.floor(diff.days);
 
                 if (diff.toMillis() <= 0) {
                     document.title = "Countdown: Ended!";
                     document.getElementById('days').innerText = "0";
                     document.getElementById('label').innerText = "Countdown Ended";
+                    document.getElementById('adjusted-days').innerText = "Adjusted days remaining: 0";
                     return;
                 }
 
-                const days = Math.floor(diff.days);
-
-                document.title = `Countdown: ${days} Days`;
-                document.getElementById('days').innerText = days;
+                // Update the total days countdown
+                document.getElementById('days').innerText = totalDays;
                 document.getElementById('label').innerText = "Days Remaining";
+
+                // Calculate adjusted working days remaining
+                const adjustedDays = calculateWorkingDays(targetDate);
+                document.getElementById('adjusted-days').innerText = `Adjusted days remaining: ${adjustedDays}`;
 
                 setTimeout(updateCountdown, 1000);
             }
