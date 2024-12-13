@@ -9,6 +9,8 @@
             --background-color: #121212;
             --text-color: white;
             --secondary-color: #bbbbbb;
+            --progress-bar-bg: #555;
+            --progress-bar-fill: #4caf50;
         }
 
         body {
@@ -43,6 +45,29 @@
             margin-top: 40px;
         }
 
+        #progress-container {
+            margin-top: 30px;
+            width: 80%;
+            background-color: var(--progress-bar-bg);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background-color: var(--progress-bar-fill);
+            width: 0%; /* Initial width */
+            transition: width 0.3s ease-in-out;
+        }
+
+        #progress-text {
+            margin-top: 10px;
+            font-size: 1.5em;
+        }
+
         #current-time {
             display: none;
         }
@@ -57,48 +82,110 @@
         <div id="working-days">Working Days: Loading...</div>
     </div>
 
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+    <div id="progress-text">0% of the school year complete</div>
+
     <!-- Include Luxon library for timezone support -->
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
 
     <script>
         const { DateTime } = luxon;
 
-        // List of Irish bank holidays for 2024 and 2025
-        const bankHolidays = [
-            // 2024 Bank Holidays
-            "2024-01-01", // New Year's Day
-            "2024-03-17", // St. Patrick's Day
-            "2024-04-01", // Easter Monday
-            "2024-05-06", // May Bank Holiday
-            "2024-06-03", // June Bank Holiday
-            "2024-08-05", // August Bank Holiday
-            "2024-10-28", // October Bank Holiday
-            "2024-12-25", // Christmas Day
-            "2024-12-26", // St. Stephen's Day
+        const schoolYearStart = DateTime.fromISO("2024-09-01T00:00:00", { zone: "Europe/Dublin" });
+        const schoolYearEnd = DateTime.fromISO("2025-05-19T00:00:00", { zone: "Europe/Dublin" });
 
-            // 2025 Bank Holidays
-            "2025-01-01", // New Year's Day
-            "2025-03-17", // St. Patrick's Day
-            "2025-04-21", // Easter Monday
-            "2025-05-05", // May Bank Holiday
-            "2025-06-02", // June Bank Holiday
-            "2025-08-04", // August Bank Holiday
-            "2025-10-27", // October Bank Holiday
-            "2025-12-25", // Christmas Day
-            "2025-12-26", // St. Stephen's Day
-        ];
+        function calculateProgress() {
+            const now = DateTime.now().setZone("Europe/Dublin");
+            const totalSchoolDays = schoolYearEnd.diff(schoolYearStart, "days").days;
+            const daysPassed = now.diff(schoolYearStart, "days").days;
 
-        // Christmas holidays and mid-term break
-        const academicHolidays = [
-            // Christmas holidays (20th December 2024 to 6th January 2025)
+            const progressPercentage = Math.min((daysPassed / totalSchoolDays) * 100, 100);
+            return {
+                progressPercentage: progressPercentage.toFixed(1), // Rounded to 1 decimal
+                daysPassed: Math.floor(daysPassed),
+                totalSchoolDays: Math.floor(totalSchoolDays),
+            };
+        }
+
+        function updateProgressBar() {
+            const progress = calculateProgress();
+            const progressBar = document.getElementById("progress-bar");
+            const progressText = document.getElementById("progress-text");
+
+            progressBar.style.width = `${progress.progressPercentage}%`;
+            progressText.innerText = `${progress.progressPercentage}% of the school year complete`;
+        }
+
+        function calculateWorkingDays(targetDate) {
+            const now = DateTime.now().setZone("Europe/Dublin");
+            let workingDays = 0;
+            let currentDate = now;
+
+            while (currentDate < targetDate) {
+                if (currentDate.weekday < 6) {
+                    const isHoliday = holidays.some((holiday) => holiday.hasSame(currentDate, "day"));
+                    if (!isHoliday) workingDays++;
+                }
+                currentDate = currentDate.plus({ days: 1 });
+            }
+            return workingDays;
+        }
+
+        function startCountdown() {
+            const targetDate = schoolYearEnd;
+
+            function updateCountdown() {
+                const now = DateTime.now().setZone("Europe/Dublin");
+
+                const diff = targetDate.diff(now, ["days"]);
+                const totalDays = Math.floor(diff.days);
+
+                if (diff.toMillis() <= 0) {
+                    document.title = "Countdown: Ended!";
+                    document.getElementById("days").innerText = "0";
+                    document.getElementById("label").innerText = "Countdown Ended";
+                    document.getElementById("working-days").innerText = "Working Days: 0";
+                    return;
+                }
+
+                document.getElementById("days").innerText = totalDays;
+                document.getElementById("label").innerText = "Days Remaining";
+
+                const workingDays = calculateWorkingDays(targetDate);
+                document.getElementById("working-days").innerText = `Working Days: ${workingDays}`;
+
+                updateProgressBar();
+                setTimeout(updateCountdown, 1000);
+            }
+
+            updateCountdown();
+        }
+
+        const holidays = [
             ...generateHolidayRange("2024-12-20", "2025-01-06"),
-            // Mid-term break (17th February to 21st February 2025)
             ...generateHolidayRange("2025-02-17", "2025-02-21"),
-        ];
+            "2024-01-01",
+            "2024-03-17",
+            "2024-04-01",
+            "2024-05-06",
+            "2024-06-03",
+            "2024-08-05",
+            "2024-10-28",
+            "2024-12-25",
+            "2024-12-26",
+            "2025-01-01",
+            "2025-03-17",
+            "2025-04-21",
+            "2025-05-05",
+            "2025-06-02",
+            "2025-08-04",
+            "2025-10-27",
+            "2025-12-25",
+            "2025-12-26",
+        ].map((date) => DateTime.fromISO(date));
 
-        const holidays = [...bankHolidays, ...academicHolidays].map(date => DateTime.fromISO(date));
-
-        // Generate an array of dates for a given range
         function generateHolidayRange(startDate, endDate) {
             const start = DateTime.fromISO(startDate);
             const end = DateTime.fromISO(endDate);
@@ -110,57 +197,6 @@
                 currentDate = currentDate.plus({ days: 1 });
             }
             return dates;
-        }
-
-        function calculateWorkingDays(targetDate) {
-            const now = DateTime.now().setZone("Europe/Dublin");
-            let workingDays = 0;
-            let currentDate = now;
-
-            while (currentDate < targetDate) {
-                // Exclude weekends
-                if (currentDate.weekday < 6) {
-                    // Exclude holidays
-                    const isHoliday = holidays.some(holiday => holiday.hasSame(currentDate, 'day'));
-                    if (!isHoliday) workingDays++;
-                }
-                currentDate = currentDate.plus({ days: 1 });
-            }
-            return workingDays;
-        }
-
-        function startCountdown() {
-            // Set the target date in Irish Time (Europe/Dublin)
-            const targetDate = DateTime.fromISO("2025-05-19T00:00:00", { zone: 'Europe/Dublin' });
-
-            function updateCountdown() {
-                // Get the current time in Irish Time
-                const now = DateTime.now().setZone('Europe/Dublin');
-
-                // Calculate the total Days remaining
-                const diff = targetDate.diff(now, ['days']);
-                const totalDays = Math.floor(diff.days);
-
-                if (diff.toMillis() <= 0) {
-                    document.title = "Countdown: Ended!";
-                    document.getElementById('days').innerText = "0";
-                    document.getElementById('label').innerText = "Countdown Ended";
-                    document.getElementById('working-days').innerText = "Working Days: 0";
-                    return;
-                }
-
-                // Update the total Days countdown
-                document.getElementById('days').innerText = totalDays;
-                document.getElementById('label').innerText = "Days Remaining";
-
-                // Calculate adjusted Working Days remaining
-                const workingDays = calculateWorkingDays(targetDate);
-                document.getElementById('working-days').innerText = `Working Days: ${workingDays}`;
-
-                setTimeout(updateCountdown, 1000);
-            }
-
-            updateCountdown();
         }
 
         startCountdown();
