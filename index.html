@@ -40,7 +40,7 @@
         }
 
         #working-days {
-            font-size: 6em;
+            font-size: 6em; /* Increased by 400% */
             color: var(--secondary-color);
             margin-top: 40px;
         }
@@ -59,7 +59,7 @@
         #progress-bar {
             height: 100%;
             background-color: var(--progress-bar-fill);
-            width: 0%;
+            width: 0%; /* Initial width */
             transition: width 0.3s ease-in-out;
         }
 
@@ -68,9 +68,9 @@
             font-size: 1.5em;
         }
 
-        #next-holiday {
-            margin-top: 20px;
+        #next-bank-holiday {
             font-size: 1.5em;
+            margin-top: 40px;
             color: var(--secondary-color);
         }
 
@@ -92,8 +92,7 @@
         <div id="progress-bar"></div>
     </div>
     <div id="progress-text">0% of the school year complete</div>
-
-    <div id="next-holiday">Next Bank Holiday: Loading...</div>
+    <div id="next-bank-holiday">Next Bank Holiday: Loading...</div>
 
     <!-- Include Luxon library for timezone support -->
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
@@ -104,7 +103,9 @@
         const schoolYearStart = DateTime.fromISO("2024-09-01T00:00:00", { zone: "Europe/Dublin" });
         const schoolYearEnd = DateTime.fromISO("2025-05-19T00:00:00", { zone: "Europe/Dublin" });
 
-        const bankHolidays = [
+        const holidays = [
+            ...generateHolidayRange("2024-12-20", "2025-01-06"),
+            ...generateHolidayRange("2025-02-17", "2025-02-21"),
             "2024-01-01",
             "2024-03-17",
             "2024-04-01",
@@ -123,38 +124,37 @@
             "2025-10-27",
             "2025-12-25",
             "2025-12-26",
-        ].map(date => DateTime.fromISO(date));
+        ].map((date) => DateTime.fromISO(date));
 
-        function calculateNextHoliday() {
+        function generateHolidayRange(startDate, endDate) {
+            const start = DateTime.fromISO(startDate);
+            const end = DateTime.fromISO(endDate);
+            const dates = [];
+            let currentDate = start;
+
+            while (currentDate <= end) {
+                dates.push(currentDate.toISODate());
+                currentDate = currentDate.plus({ days: 1 });
+            }
+            return dates;
+        }
+
+        function getNextBankHoliday() {
             const now = DateTime.now().setZone("Europe/Dublin");
-            const nextHoliday = bankHolidays.find(holiday => holiday > now);
+            const nextHoliday = holidays.find((holiday) => holiday > now);
+
             if (nextHoliday) {
-                const diff = nextHoliday.diff(now, ["days"]).toObject();
-                return {
-                    name: nextHoliday.toLocaleString(DateTime.DATE_HUGE),
-                    daysRemaining: Math.floor(diff.days),
-                };
+                const daysUntil = Math.floor(nextHoliday.diff(now, "days").days);
+                const holidayName = nextHoliday.toLocaleString(DateTime.DATE_MED);
+                return `Next Bank Holiday: ${holidayName} (${daysUntil} Days Away)`;
             } else {
-                return { name: "No upcoming holidays", daysRemaining: 0 };
+                return "No more bank holidays this school year!";
             }
         }
 
-        function updateNextHoliday() {
-            const { name, daysRemaining } = calculateNextHoliday();
-            document.getElementById("next-holiday").innerText = `Next Bank Holiday: ${name} (${daysRemaining} Days Remaining)`;
-        }
-
-        function updateProgressBar() {
-            const now = DateTime.now().setZone("Europe/Dublin");
-            const totalSchoolDays = schoolYearEnd.diff(schoolYearStart, "days").days;
-            const daysPassed = now.diff(schoolYearStart, "days").days;
-
-            const progressPercentage = Math.min((daysPassed / totalSchoolDays) * 100, 100);
-            const progressBar = document.getElementById("progress-bar");
-            const progressText = document.getElementById("progress-text");
-
-            progressBar.style.width = `${progressPercentage}%`;
-            progressText.innerText = `${progressPercentage.toFixed(1)}% of the school year complete`;
+        function updateNextBankHoliday() {
+            const nextHolidayText = getNextBankHoliday();
+            document.getElementById("next-bank-holiday").innerText = nextHolidayText;
         }
 
         function startCountdown() {
@@ -171,20 +171,59 @@
                     document.getElementById("days").innerText = "0";
                     document.getElementById("label").innerText = "Countdown Ended";
                     document.getElementById("working-days").innerText = "Working Days: 0";
-                    updateNextHoliday();
                     return;
                 }
 
                 document.getElementById("days").innerText = totalDays;
                 document.getElementById("label").innerText = "Days Remaining";
 
+                const workingDays = calculateWorkingDays(targetDate);
+                document.getElementById("working-days").innerText = `Working Days: ${workingDays}`;
+
                 updateProgressBar();
-                updateNextHoliday();
+                updateNextBankHoliday();
 
                 setTimeout(updateCountdown, 1000);
             }
 
             updateCountdown();
+        }
+
+        function calculateProgress() {
+            const now = DateTime.now().setZone("Europe/Dublin");
+            const totalSchoolDays = schoolYearEnd.diff(schoolYearStart, "days").days;
+            const daysPassed = now.diff(schoolYearStart, "days").days;
+
+            const progressPercentage = Math.min((daysPassed / totalSchoolDays) * 100, 100);
+            return {
+                progressPercentage: progressPercentage.toFixed(1), // Rounded to 1 decimal
+                daysPassed: Math.floor(daysPassed),
+                totalSchoolDays: Math.floor(totalSchoolDays),
+            };
+        }
+
+        function updateProgressBar() {
+            const progress = calculateProgress();
+            const progressBar = document.getElementById("progress-bar");
+            const progressText = document.getElementById("progress-text");
+
+            progressBar.style.width = `${progress.progressPercentage}%`;
+            progressText.innerText = `${progress.progressPercentage}% of the school year complete`;
+        }
+
+        function calculateWorkingDays(targetDate) {
+            const now = DateTime.now().setZone("Europe/Dublin");
+            let workingDays = 0;
+            let currentDate = now;
+
+            while (currentDate < targetDate) {
+                if (currentDate.weekday < 6) {
+                    const isHoliday = holidays.some((holiday) => holiday.hasSame(currentDate, "day"));
+                    if (!isHoliday) workingDays++;
+                }
+                currentDate = currentDate.plus({ days: 1 });
+            }
+            return workingDays;
         }
 
         startCountdown();
