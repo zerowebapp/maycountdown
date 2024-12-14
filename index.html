@@ -118,6 +118,28 @@
             progressText.innerText = `${progress.progressPercentage}% of the school year complete`;
         }
 
+        function updateFavicon(daysRemaining) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext("2d");
+
+            // Draw background
+            ctx.fillStyle = "#4caf50";
+            ctx.fillRect(0, 0, 32, 32);
+
+            // Draw days remaining
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 16px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(daysRemaining, 16, 16);
+
+            // Update favicon
+            const favicon = document.getElementById("favicon");
+            favicon.href = canvas.toDataURL("image/png");
+        }
+
         function calculateWorkingDays(targetDate) {
             const now = DateTime.now().setZone("Europe/Dublin");
             let workingDays = 0;
@@ -147,6 +169,7 @@
                     document.getElementById("days").innerText = "0";
                     document.getElementById("label").innerText = "Countdown Ended";
                     document.getElementById("working-days").innerText = "Working Days: 0";
+                    updateFavicon(0);
                     return;
                 }
 
@@ -157,6 +180,8 @@
                 document.getElementById("working-days").innerText = `Working Days: ${workingDays}`;
 
                 updateProgressBar();
+                updateFavicon(totalDays);
+
                 setTimeout(updateCountdown, 1000);
             }
 
