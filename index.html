@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <title>Countdown Timer</title>
     <link id="favicon" rel="icon" href="">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
         :root {
             --background-color: #121212;
@@ -14,28 +16,34 @@
             --progress-bar-fill: #4caf50;
         }
 
-        body {
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
             background-color: var(--background-color);
             color: var(--text-color);
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 10px 20px; /* Reduced padding at the top */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            text-align: center; /* Center all text */
             overflow-x: hidden;
         }
 
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Align horizontally */
+            justify-content: center; /* Align vertically */
+            padding: 0 20px;
+            padding-top: env(safe-area-inset-top, 0); /* Handle iPhone safe area */
+            height: 100vh;
+        }
+
         h1 {
+            margin: 0;
             font-size: 2.5em;
-            margin-bottom: 10px;
         }
 
         #timer {
-            margin-top: 5px; /* Reduced spacing above the timer */
+            margin-top: 10px;
         }
 
         #days {
@@ -50,11 +58,11 @@
         #working-days {
             font-size: 2em;
             color: var(--secondary-color);
-            margin-top: 15px; /* Reduced spacing below the working days */
+            margin-top: 15px;
         }
 
         #progress-container {
-            margin-top: 15px; /* Reduced spacing above the progress bar */
+            margin-top: 15px;
             width: 90%;
             background-color: var(--progress-bar-bg);
             height: 15px;
@@ -65,7 +73,7 @@
         #progress-bar {
             height: 100%;
             background-color: var(--progress-bar-fill);
-            width: 0%; /* Initial width */
+            width: 0%;
             transition: width 0.3s ease-in-out;
         }
 
@@ -145,7 +153,6 @@
             "2024-12-25",
             "2024-12-26",
             "2025-01-01",
-	    "2025-02-03",
             "2025-03-17",
             "2025-04-21",
             "2025-05-05",
