@@ -20,30 +20,31 @@
             margin: 0;
             padding: 0;
             height: 100%;
+            width: 100%;
             background-color: var(--background-color);
             color: var(--text-color);
             font-family: Arial, sans-serif;
-            text-align: center; /* Center all text */
             overflow-x: hidden;
+            text-align: center; /* Center text horizontally */
         }
 
         body {
             display: flex;
             flex-direction: column;
-            align-items: center; /* Align horizontally */
-            justify-content: center; /* Align vertically */
-            padding: 0 20px;
-            padding-top: env(safe-area-inset-top, 0); /* Handle iPhone safe area */
-            height: 100vh;
+            align-items: center;
+            justify-content: flex-start; /* Align closer to the top */
+            padding-top: env(safe-area-inset-top, 0); /* Handle iPhone notch */
+            height: calc(100vh - env(safe-area-inset-top, 0)); /* Adjust height for safe area */
         }
 
         h1 {
             margin: 0;
             font-size: 2.5em;
+            padding-top: 5px; /* Small padding to avoid cramping */
         }
 
         #timer {
-            margin-top: 10px;
+            margin-top: 10px; /* Minimal spacing */
         }
 
         #days {
@@ -137,6 +138,7 @@
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
 
     <script>
+        // JavaScript logic remains unchanged
         const { DateTime } = luxon;
 
         const schoolYearStart = DateTime.fromISO("2024-09-01T00:00:00", { zone: "Europe/Dublin" });
@@ -153,7 +155,6 @@
             "2024-12-25",
             "2024-12-26",
             "2025-01-01",
-            "2025-02-03",
             "2025-03-17",
             "2025-04-21",
             "2025-05-05",
