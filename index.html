@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>School Year Countdown</title>
+    <title>Countdown Timer</title>
+    <link id="favicon" rel="icon" href="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
             --background-color: #121212;
@@ -17,115 +19,170 @@
             color: var(--text-color);
             font-family: Arial, sans-serif;
             text-align: center;
+            margin: 0;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow-x: hidden;
         }
 
         h1 {
-            font-size: 6em;
-            margin-bottom: 20px;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        #timer {
+            margin-top: 10px;
         }
 
         #days {
-            font-size: 16em;
+            font-size: 5em;
         }
 
         #label {
-            font-size: 4em;
+            font-size: 1.2em;
+            margin-top: -10px;
         }
 
         #working-days {
-            font-size: 4em;
+            font-size: 2em;
             color: var(--secondary-color);
             margin-top: 20px;
         }
 
         #progress-container {
-            margin-top: 30px;
-            width: 80%;
+            margin-top: 20px;
+            width: 90%;
             background-color: var(--progress-bar-bg);
-            height: 20px;
+            height: 15px;
             border-radius: 10px;
             overflow: hidden;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         #progress-bar {
             height: 100%;
             background-color: var(--progress-bar-fill);
-            width: 0%;
-            transition: width 0.5s;
+            width: 0%; /* Initial width */
+            transition: width 0.3s ease-in-out;
         }
 
         #progress-text {
-            font-size: 1.5em;
             margin-top: 10px;
+            font-size: 1em;
         }
 
-        #next-bank-holiday {
-            font-size: 1.5em;
-            margin-top: 20px;
+        #next-bank-holiday,
+        #next-midterm-break {
+            font-size: 1em;
+            margin-top: 10px;
             color: var(--secondary-color);
+        }
+
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 4em;
+            }
+
+            #days {
+                font-size: 8em;
+            }
+
+            #label {
+                font-size: 2em;
+            }
+
+            #working-days {
+                font-size: 3em;
+            }
+
+            #progress-container {
+                height: 20px;
+            }
+
+            #progress-text,
+            #next-bank-holiday,
+            #next-midterm-break {
+                font-size: 1.5em;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Countdown</h1>
-    <div id="days">Loading...</div>
-    <div id="label">Days Remaining</div>
-    <div id="working-days">Working Days: Loading...</div>
+    <h1>Countdown Timer</h1>
+    <div id="timer">
+        <div id="days">Loading...</div>
+        <div id="label">Days Remaining</div>
+        <div id="working-days">Working Days: Loading...</div>
+    </div>
+
     <div id="progress-container">
         <div id="progress-bar"></div>
     </div>
     <div id="progress-text">0% of the school year complete</div>
     <div id="next-bank-holiday">Next Bank Holiday: Loading...</div>
+    <div id="next-midterm-break">Next Mid-Term Break: Loading...</div>
 
-    <!-- Include Luxon for date and time calculations -->
+    <!-- Include Luxon library for timezone support -->
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+
     <script>
         const { DateTime } = luxon;
 
-        // School year start and end dates
         const schoolYearStart = DateTime.fromISO("2024-09-01T00:00:00", { zone: "Europe/Dublin" });
         const schoolYearEnd = DateTime.fromISO("2025-05-19T00:00:00", { zone: "Europe/Dublin" });
 
-        // Irish bank holidays
         const bankHolidays = [
-            "2024-01-01", "2024-03-17", "2024-04-01", "2024-05-06", "2024-06-03", "2024-08-05",
-            "2024-10-28", "2024-12-25", "2024-12-26",
-            "2025-01-01", "2025-02-03", "2025-03-17", "2025-04-21", "2025-05-05", "2025-06-02", "2025-08-04", "2025-10-27", "2025-12-25", "2025-12-26"
+            "2024-01-01",
+            "2024-03-17",
+            "2024-04-01",
+            "2024-05-06",
+            "2024-06-03",
+            "2024-08-05",
+            "2024-10-28",
+            "2024-12-25",
+            "2024-12-26",
+            "2025-01-01",
+            "2025-03-17",
+            "2025-04-21",
+            "2025-05-05",
+            "2025-06-02",
+            "2025-08-04",
+            "2025-10-27",
+            "2025-12-25",
+            "2025-12-26",
         ].map(date => DateTime.fromISO(date));
 
-        // Term holidays
-        const termHolidays = [
-            ...generateHolidayRange("2024-12-20", "2025-01-06"),
-            ...generateHolidayRange("2025-02-17", "2025-02-21")
-        ].map(date => DateTime.fromISO(date));
+        const termBreaks = [
+            { start: "2024-12-20", end: "2025-01-06" },
+            { start: "2025-02-17", end: "2025-02-21" },
+        ].map(breakPeriod => ({
+            start: DateTime.fromISO(breakPeriod.start),
+            end: DateTime.fromISO(breakPeriod.end),
+        }));
 
-        // Combine all non-working days
-        const nonWorkingDays = [...bankHolidays, ...termHolidays];
+        const nonWorkingDays = [
+            ...bankHolidays,
+            ...termBreaks.flatMap(breakPeriod => {
+                let dates = [];
+                let current = breakPeriod.start;
+                while (current <= breakPeriod.end) {
+                    dates.push(current);
+                    current = current.plus({ days: 1 });
+                }
+                return dates;
+            }),
+        ];
 
-        // Generate a range of dates
-        function generateHolidayRange(startDate, endDate) {
-            const start = DateTime.fromISO(startDate);
-            const end = DateTime.fromISO(endDate);
-            const dates = [];
-            let currentDate = start;
-            while (currentDate <= end) {
-                dates.push(currentDate.toISODate());
-                currentDate = currentDate.plus({ days: 1 });
-            }
-            return dates;
-        }
-
-        // Calculate remaining working days
-        function calculateWorkingDays(endDate) {
+        function calculateWorkingDays(targetDate) {
             const now = DateTime.now().setZone("Europe/Dublin");
             let workingDays = 0;
             let currentDate = now;
 
-            while (currentDate < endDate) {
-                if (currentDate.weekday < 6) { // Monday to Friday
+            while (currentDate < targetDate) {
+                if (currentDate.weekday < 6) {
                     const isHoliday = nonWorkingDays.some(holiday => holiday.hasSame(currentDate, "day"));
                     if (!isHoliday) {
                         workingDays++;
@@ -136,47 +193,88 @@
             return workingDays;
         }
 
-        // Get the next bank holiday
         function getNextBankHoliday() {
             const now = DateTime.now().setZone("Europe/Dublin");
             const nextHoliday = bankHolidays.find(holiday => holiday > now);
+
             if (nextHoliday) {
-                const daysUntil = Math.ceil(nextHoliday.diff(now, "days").days);
-                return `Next Bank Holiday: ${nextHoliday.toLocaleString(DateTime.DATE_MED)} (${daysUntil} Days Away)`;
+                const daysUntil = Math.floor(nextHoliday.diff(now, "days").days);
+                const holidayName = nextHoliday.toLocaleString(DateTime.DATE_MED);
+                return `Next Bank Holiday: ${holidayName} (${daysUntil} Days Away)`;
+            } else {
+                return "No more bank holidays this school year!";
             }
-            return "No more bank holidays this school year!";
         }
 
-        // Update the progress bar
-        function updateProgressBar() {
+        function getNextMidTermBreak() {
             const now = DateTime.now().setZone("Europe/Dublin");
-            const totalDays = schoolYearEnd.diff(schoolYearStart, "days").days;
+            const nextBreak = termBreaks.find(b => b.start > now);
+
+            if (nextBreak) {
+                const daysUntil = Math.floor(nextBreak.start.diff(now, "days").days);
+                return `Next Mid-Term Break: ${nextBreak.start.toLocaleString(DateTime.DATE_MED)} to ${nextBreak.end.toLocaleString(DateTime.DATE_MED)} (${daysUntil} Days Away)`;
+            } else {
+                return "No more mid-term breaks this school year!";
+            }
+        }
+
+        function calculateProgress() {
+            const now = DateTime.now().setZone("Europe/Dublin");
+            const totalSchoolDays = schoolYearEnd.diff(schoolYearStart, "days").days;
             const daysPassed = now.diff(schoolYearStart, "days").days;
-            const progressPercentage = Math.min((daysPassed / totalDays) * 100, 100).toFixed(1);
 
-            document.getElementById("progress-bar").style.width = `${progressPercentage}%`;
-            document.getElementById("progress-text").innerText = `${progressPercentage}% of the school year complete`;
+            const progressPercentage = Math.min((daysPassed / totalSchoolDays) * 100, 100);
+            return {
+                progressPercentage: progressPercentage.toFixed(1),
+                daysPassed: Math.floor(daysPassed),
+                totalSchoolDays: Math.floor(totalSchoolDays),
+            };
         }
 
-        // Main countdown logic
+        function updateProgressBar() {
+            const progress = calculateProgress();
+            const progressBar = document.getElementById("progress-bar");
+            const progressText = document.getElementById("progress-text");
+
+            progressBar.style.width = `${progress.progressPercentage}%`;
+            progressText.innerText = `${progress.progressPercentage}% of the school year complete`;
+        }
+
         function startCountdown() {
-            const now = DateTime.now().setZone("Europe/Dublin");
-            const daysRemaining = Math.ceil(schoolYearEnd.diff(now, "days").days);
-            const workingDays = calculateWorkingDays(schoolYearEnd);
-            const nextBankHoliday = getNextBankHoliday();
+            const targetDate = schoolYearEnd;
 
-            document.getElementById("days").innerText = daysRemaining;
-            document.getElementById("label").innerText = "Days Remaining";
-            document.getElementById("working-days").innerText = `Working Days: ${workingDays}`;
-            document.getElementById("next-bank-holiday").innerText = nextBankHoliday;
+            function updateCountdown() {
+                const now = DateTime.now().setZone("Europe/Dublin");
+                const diff = targetDate.diff(now, ["days"]);
+                const totalDays = Math.floor(diff.days);
 
-            updateProgressBar();
+                if (diff.toMillis() <= 0) {
+                    document.title = "Countdown: Ended!";
+                    document.getElementById("days").innerText = "0";
+                    document.getElementById("label").innerText = "Countdown Ended";
+                    document.getElementById("working-days").innerText = "Working Days: 0";
+                    return;
+                }
 
-            // Refresh every second
-            setTimeout(startCountdown, 1000);
+                document.getElementById("days").innerText = totalDays;
+                document.getElementById("label").innerText = "Days Remaining";
+
+                const workingDays = calculateWorkingDays(targetDate);
+                document.getElementById("working-days").innerText = `Working Days: ${workingDays}`;
+
+                const nextHolidayText = getNextBankHoliday();
+                document.getElementById("next-bank-holiday").innerText = nextHolidayText;
+
+                const nextMidTermText = getNextMidTermBreak();
+                document.getElementById("next-midterm-break").innerText = nextMidTermText;
+
+                updateProgressBar();
+                setTimeout(updateCountdown, 1000);
+            }
+
+            updateCountdown();
         }
 
-        // Start the countdown
         startCountdown();
     </script>
 </body>
