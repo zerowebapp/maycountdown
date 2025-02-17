@@ -56,6 +56,12 @@
             margin-top: -10px;
         }
 
+        #working-days {
+            font-size: 2em;
+            color: var(--secondary-color);
+            margin-top: 15px;
+        }
+
         #progress-container {
             margin-top: 15px;
             width: 90%;
@@ -97,6 +103,10 @@
                 font-size: 2em;
             }
 
+            #working-days {
+                font-size: 3em;
+            }
+
             #progress-container {
                 height: 20px;
             }
@@ -114,6 +124,7 @@
     <div id="timer">
         <div id="days">Loading...</div>
         <div id="label">Days Remaining</div>
+        <div id="working-days">Working Days: Loading...</div>
     </div>
 
     <div id="progress-container">
@@ -138,67 +149,64 @@
         ].map(date => DateTime.fromISO(date));
 
         const academicBreaks = [
-            { name: "Christmas Break", start: "2024-12-20", end: "2025-01-06" },
-            { name: "Mid-Term Break", start: "2025-02-17", end: "2025-02-21" },
-            { name: "Easter Break", start: "2025-04-14", end: "2025-04-25" },
-            { name: "Summer Break", start: "2025-05-02", end: "2025-08-30" }
+            { start: "2024-12-20", end: "2025-01-06" },
+            { start: "2025-02-17", end: "2025-02-21" },
+            { start: "2025-04-14", end: "2025-04-25" }
         ].map(breakPeriod => ({
-            name: breakPeriod.name,
             start: DateTime.fromISO(breakPeriod.start),
             end: DateTime.fromISO(breakPeriod.end)
         }));
 
-        function getNextAcademicBreak() {
-            const now = DateTime.now().setZone("Europe/Dublin");
-            const nextBreak = academicBreaks.find(b => b.start > now);
+        function calculateWorkingDays(targetDate) {
+            let workingDays = 0;
+            let currentDate = DateTime.now().setZone("Europe/Dublin");
 
-            if (nextBreak) {
-                const daysUntil = Math.floor(nextBreak.start.diff(now, "days").days);
-                return `Next Academic Break: ${nextBreak.name} (${nextBreak.start.toLocaleString(DateTime.DATE_MED)} - ${nextBreak.end.toLocaleString(DateTime.DATE_MED)}) (${daysUntil} Days Away)`;
-            } else {
-                return "No more academic breaks this school year!";
+            while (currentDate < targetDate) {
+                if (currentDate.weekday < 6) { 
+                    const isHoliday = bankHolidays.some(holiday => holiday.hasSame(currentDate, "day"));
+                    const isBreak = academicBreaks.some(b => currentDate >= b.start && currentDate <= b.end);
+                    if (!isHoliday && !isBreak) {
+                        workingDays++;
+                    }
+                }
+                currentDate = currentDate.plus({ days: 1 });
             }
-        }
-
-        function getNextBankHoliday() {
-            const now = DateTime.now().setZone("Europe/Dublin");
-            const nextHoliday = bankHolidays.find(holiday => holiday > now);
-
-            if (nextHoliday) {
-                const daysUntil = Math.floor(nextHoliday.diff(now, "days").days);
-                return `Next Bank Holiday: ${nextHoliday.toLocaleString(DateTime.DATE_MED)} (${daysUntil} Days Away)`;
-            } else {
-                return "No more bank holidays this school year!";
-            }
-        }
-
-        function calculateProgress() {
-            const now = DateTime.now().setZone("Europe/Dublin");
-            const totalSchoolDays = schoolYearEnd.diff(schoolYearStart, "days").days;
-            const daysPassed = now.diff(schoolYearStart, "days").days;
-
-            const progressPercentage = Math.min((daysPassed / totalSchoolDays) * 100, 100);
-            return progressPercentage.toFixed(1);
+            return workingDays;
         }
 
         function updateProgressBar() {
-            const progress = calculateProgress();
-            document.getElementById("progress-bar").style.width = `${progress}%`;
-            document.getElementById("progress-text").innerText = `${progress}% of the school year complete`;
+            const now = DateTime.now().setZone("Europe/Dublin");
+            const totalDays = schoolYearEnd.diff(schoolYearStart, "days").days;
+            const daysPassed = now.diff(schoolYearStart, "days").days;
+            const progressPercentage = Math.min((daysPassed / totalDays) * 100, 100).toFixed(1);
+            document.getElementById("progress-bar").style.width = `${progressPercentage}%`;
+            document.getElementById("progress-text").innerText = `${progressPercentage}% of the school year complete`;
         }
 
         function updateCountdown() {
             const now = DateTime.now().setZone("Europe/Dublin");
             const totalDays = Math.floor(schoolYearEnd.diff(now, "days").days);
+            const workingDaysLeft = calculateWorkingDays(schoolYearEnd);
 
             document.getElementById("days").innerText = totalDays;
-            document.getElementById("label").innerText = "Days Remaining";
+            document.getElementById("working-days").innerText = `Working Days: ${workingDaysLeft}`;
             document.getElementById("next-bank-holiday").innerText = getNextBankHoliday();
             document.getElementById("next-academic-break").innerText = getNextAcademicBreak();
-
+            
             updateProgressBar();
-
             setTimeout(updateCountdown, 1000);
+        }
+
+        function getNextBankHoliday() {
+            const now = DateTime.now().setZone("Europe/Dublin");
+            const nextHoliday = bankHolidays.find(holiday => holiday > now);
+            return nextHoliday ? `Next Bank Holiday: ${nextHoliday.toLocaleString(DateTime.DATE_MED)} (${Math.ceil(nextHoliday.diff(now, "days").days)} Days Away)` : "No more bank holidays this school year!";
+        }
+
+        function getNextAcademicBreak() {
+            const now = DateTime.now().setZone("Europe/Dublin");
+            const nextBreak = academicBreaks.find(b => b.start > now);
+            return nextBreak ? `Next Academic Break: ${nextBreak.start.toLocaleString(DateTime.DATE_MED)} - ${nextBreak.end.toLocaleString(DateTime.DATE_MED)} (${Math.ceil(nextBreak.start.diff(now, "days").days)} Days Away)` : "No more academic breaks this school year!";
         }
 
         updateCountdown();
